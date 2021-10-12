@@ -34,7 +34,6 @@ __pycache__/
 
 # Distribution / packaging
 .Python
-env/
 build/
 develop-eggs/
 dist/
@@ -54,6 +53,12 @@ var/
 #  before PyInstaller builds the exe, so as to inject date/other infos into it.
 *.manifest
 *.spec
+
+# Environments
+.env
+env/
+.venv
+venv/
 
 # Installer logs
 pip-log.txt
@@ -87,5 +92,4 @@ target/
 __pycache__/
 local_settings.py
 
-.env
 db.sqlite3
