@@ -59,7 +59,8 @@ var/
 env/
 .venv
 venv/
-.vscode
+
+.vscode/
 
 # Installer logs
 pip-log.txt
