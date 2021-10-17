@@ -1,26 +1,10 @@
-from Dataclasses import Film_work, Genre, Genre_film_work, Person, Person_film_work
-from psycopg2.extensions import adapt, register_adapter, AsIs
+from Dataclasses import FilmWork, Genre, GenreFilmWork, Person, PersonFilmWork
 import logging
-import psycopg2.extras
+from psycopg2.extras import execute_batch
+import dataclasses
 
 
 logging.basicConfig(level=logging.INFO)
-
-
-class PostgresSaver:
-
-    def __init__(self, ps_connect):
-        self.connect = ps_connect
-
-    def save_all_data(self, data):
-        cur = self.connect.cursor()
-        query = 'INSERT INTO content.film_work(title, description, certificate, file_path, rating, type, created_at, updated_at, creation_date, id) VALUES (%s)'
-        psycopg2.extras.execute_batch(cur, query, data.film_work)
-       # cur.execute("""'PREPARE film_work_pln
-         #   (film_work) AS
-         #   INSERT INTO content.film_work
-         #   VALUES(%s)
-         #   ON CONFLICT (id) DO NOTHING;'""", data.film_work)
 
 
 class Data:
@@ -37,6 +21,65 @@ class Data:
         self.genre_film_work = genre_film_work
         self.person = person
         self.person_film_work = person_film_work
+
+
+class PostgresSaver:
+
+    def __init__(self, ps_connect):
+        self.connect = ps_connect
+
+    def save_all_data(self, data):
+        cur = self.connect.cursor()
+        self.save_film_work(data, cur)
+        self.save_genre(data, cur)
+        self.save_genre_film_work(data, cur)
+        self.save_person(data, cur)
+        self.save_person_film_work(data, cur)
+    
+    def save_film_work(self, data, cursor):
+        query = """INSERT INTO content.film_work (title, description, creation_date, certificate, file_path, rating, type, created_at, updated_at, id)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        ON CONFLICT (id) DO NOTHING"""
+        try:
+            execute_batch(cursor, query, data.film_work)
+        except:
+            logging.exception('message')
+
+    def save_genre(self, data, cursor):
+        query = """INSERT INTO content.genre (name, description, created_at, updated_at, id)
+        VALUES (%s, %s, %s, %s, %s)
+        ON CONFLICT (id) DO NOTHING"""
+        try:
+            execute_batch(cursor, query, data.genre)
+        except:
+            logging.exception('message')
+
+    def save_genre_film_work(self, data, cursor):
+        query = """INSERT INTO content.genre_film_work (created_at, id, film_work_id, genre_id)
+        VALUES (%s, %s, %s, %s)
+        ON CONFLICT (id) DO NOTHING"""
+        try:
+            execute_batch(cursor, query, data.genre_film_work)
+        except:
+            logging.exception('message')
+
+    def save_person(self, data, cursor):
+        query = """INSERT INTO content.person (full_name, birth_date, created_at, updated_at, id)
+        VALUES (%s, %s, %s, %s, %s)
+        ON CONFLICT (id) DO NOTHING"""
+        try:
+            execute_batch(cursor, query, data.person)
+        except:
+            logging.exception('message')
+    
+    def save_person_film_work(self, data, cursor):
+        query = """INSERT INTO content.person_film_work (role, created_at, id, film_work_id, person_id)
+        VALUES (%s, %s, %s, %s, %s)
+        ON CONFLICT (id) DO NOTHING"""
+        try:
+            execute_batch(cursor, query, data.person_film_work)
+        except:
+            logging.exception('message')
 
 
 class SQLiteLoader:
@@ -60,79 +103,50 @@ class SQLiteLoader:
 
     def load_film_work(self, cursor):
         logging.info('Start getting film_work data from sqlite_db')
-        cursor.execute("SELECT * from film_work")
+        cursor.execute("SELECT title, description, creation_date, certificate, file_path, rating, type, created_at, updated_at, id from film_work")
         row = cursor.fetchall()
         film_work_list = []
         for line in row:
-            film_work_list.append(Film_work(
-                title=line[1],
-                description=line[2],
-                certificate=line[4],
-                file_path=line[5],
-                rating=line[6],
-                type=line[7],
-                created_at=line[8],
-                updated_at=line[9],
-                creation_date=line[3],
-                id=line[0]))
+            film_work_list.append(dataclasses.astuple(FilmWork(*line)))
         logging.info('film_work data sucessfully stored')
         return film_work_list
 
     def load_genre(self, cursor):
         logging.info('Start getting genre data from sqlite_db')
-        cursor.execute("SELECT * from genre")
+        cursor.execute("SELECT name, description, created_at, updated_at, id from genre")
         row = cursor.fetchall()
         genre_list = []
         for line in row:
-            genre_list.append(Genre(
-                name=line[1],
-                description=line[2],
-                created_at=line[3],
-                updated_at=line[4],
-                id=line[0]
-            ))
+            genre_list.append(dataclasses.astuple(Genre(*line)))
         logging.info('genre data sucessfully stored')
         return genre_list
 
     def load_genre_film_work(self, cursor):
         logging.info('Start getting genre_film_work data from sqlite_db')
-        cursor.execute("SELECT * from genre_film_work")
+        cursor.execute("SELECT created_at, id, film_work_id, genre_id from genre_film_work")
         row = cursor.fetchall()
         genre_film_work_list = []
         for line in row:
-            genre_film_work_list.append(Genre_film_work(
-                created_at=line[3],
-                id=line[0]
-            ))
+            genre_film_work_list.append(dataclasses.astuple(GenreFilmWork(*line)))
         logging.info('genre_film_work data sucessfully stored')
         return genre_film_work_list
 
     def load_person(self, cursor):
         logging.info('Start getting person data from sqlite_db')
-        cursor.execute("SELECT * from person")
+        cursor.execute("SELECT full_name, birth_date, created_at, updated_at, id from person")
         row = cursor.fetchall()
         person_list = []
         for line in row:
-            person_list.append(Person(
-                full_name=line[1],
-                birth_date=line[2],
-                created_at=line[3],
-                updated_at=line[4],
-                id=line[0]
-            ))
+            person_list.append(dataclasses.astuple(Person(*line)))
         logging.info('person data sucessfully stored')
         return person_list
 
     def load_person_film_work(self, cursor):
         logging.info('Start getting person_film_work data from sqlite_db')
-        cursor.execute("SELECT * from person_film_work")
+        cursor.execute("SELECT role, created_at, id, film_work_id, person_id from person_film_work")
         row = cursor.fetchall()
         person_film_work_list = []
         for line in row:
-            person_film_work_list.append(Person_film_work(
-                role=line[3],
-                created_at=line[4],
-                id=line[0]
-            ))
+            person_film_work_list.append(dataclasses.astuple(PersonFilmWork(*line)))
         logging.info('person_film_work data sucessfully stored')
         return person_film_work_list
