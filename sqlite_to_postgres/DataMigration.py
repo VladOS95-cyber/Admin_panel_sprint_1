@@ -138,9 +138,8 @@ class SQLiteLoader:
             id
             from film_work"""
         )
-        row = cursor.fetchall()
         film_work_list = []
-        for line in row:
+        while line := cursor.fetchone():
             film_work_list.append(dataclasses.astuple(FilmWork(*line)))
         logging.info('film_work data sucessfully stored')
         return film_work_list
@@ -153,9 +152,8 @@ class SQLiteLoader:
             created_at,
             updated_at,
             id from genre""")
-        row = cursor.fetchall()
         genre_list = []
-        for line in row:
+        while line := cursor.fetchone():
             genre_list.append(dataclasses.astuple(Genre(*line)))
         logging.info('genre data sucessfully stored')
         return genre_list
@@ -167,9 +165,8 @@ class SQLiteLoader:
             id,
             film_work_id,
             genre_id from genre_film_work""")
-        row = cursor.fetchall()
         genre_film_work_list = []
-        for line in row:
+        while line := cursor.fetchone():
             genre_film_work_list.append(
                 dataclasses.astuple(GenreFilmWork(*line)))
         logging.info('genre_film_work data sucessfully stored')
@@ -183,9 +180,8 @@ class SQLiteLoader:
             created_at,
             updated_at,
             id from person""")
-        row = cursor.fetchall()
         person_list = []
-        for line in row:
+        while line := cursor.fetchone():
             person_list.append(dataclasses.astuple(Person(*line)))
         logging.info('person data sucessfully stored')
         return person_list
@@ -198,9 +194,8 @@ class SQLiteLoader:
             id,
             film_work_id,
             person_id from person_film_work""")
-        row = cursor.fetchall()
         person_film_work_list = []
-        for line in row:
+        while line := cursor.fetchone():
             person_film_work_list.append(
                 dataclasses.astuple(PersonFilmWork(*line)))
         logging.info('person_film_work data sucessfully stored')
