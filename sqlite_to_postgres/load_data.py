@@ -1,5 +1,6 @@
 import logging
 import os.path
+import os
 import sqlite3
 
 import psycopg2
@@ -28,6 +29,14 @@ def load_from_sqlite(connection: sqlite3.Connection, pg_conn: _connection):
 
 
 if __name__ == '__main__':
-    dsl = {'dbname': 'movies', 'user': 'postgres', 'password': 'postgres', 'host': 'localhost', 'port': 5432, 'options': '-c search_path=content'}
-    with sqlite3.connect(DB_PATH) as sqlite_conn, psycopg2.connect(**dsl, cursor_factory=DictCursor) as pg_conn:
+    dsl = {
+        'dbname': os.environ.get('DB_NAME'),
+        'user': os.environ.get('DB_USER'),
+        'password': os.environ.get('DB_PASSWORD'),
+        'host': 'localhost',
+        'port': 5432,
+        'options': '-c search_path=content'}
+    with sqlite3.connect(DB_PATH) as sqlite_conn, psycopg2.connect(
+        **dsl, cursor_factory=DictCursor
+    ) as pg_conn:
         load_from_sqlite(sqlite_conn, pg_conn)
