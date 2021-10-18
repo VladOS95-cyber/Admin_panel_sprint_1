@@ -42,6 +42,7 @@ class Person:
     updated_at: datetime
     id: uuid.UUID = field(default_factory=uuid.uuid4)
 
+
 @dataclass
 class PersonFilmWork:
     role: str
