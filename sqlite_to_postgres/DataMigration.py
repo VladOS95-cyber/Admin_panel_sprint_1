@@ -1,11 +1,17 @@
 import dataclasses
-import logging
 
 from psycopg2.extras import execute_batch
 
+import app_logger
 from Dataclasses import FilmWork, Genre, GenreFilmWork, Person, PersonFilmWork
 
-logging.basicConfig(level=logging.INFO)
+logger = app_logger.get_logger(__name__)
+
+
+def process(msg):
+    logger.info("Start process")
+    print(msg)
+    logger.info("End process")
 
 
 class Data:
@@ -55,7 +61,7 @@ class PostgresSaver:
         try:
             execute_batch(cursor, query, data.film_work)
         except Exception:
-            logging.exception('message')
+            logger.exception('message')
 
     def save_genre(self, data, cursor):
         query = """INSERT INTO content.genre (name, description, created_at, updated_at, id)
@@ -64,7 +70,7 @@ class PostgresSaver:
         try:
             execute_batch(cursor, query, data.genre)
         except Exception:
-            logging.exception('message')
+            logger.exception('message')
 
     def save_genre_film_work(self, data, cursor):
         query = """INSERT INTO content.genre_film_work (created_at, id, film_work_id, genre_id)
@@ -73,7 +79,7 @@ class PostgresSaver:
         try:
             execute_batch(cursor, query, data.genre_film_work)
         except Exception:
-            logging.exception('message')
+            logger.exception('message')
 
     def save_person(self, data, cursor):
         query = """INSERT INTO content.person (
@@ -87,7 +93,7 @@ class PostgresSaver:
         try:
             execute_batch(cursor, query, data.person)
         except Exception:
-            logging.exception('message')
+            logger.exception('message')
 
     def save_person_film_work(self, data, cursor):
         query = """INSERT INTO content.person_film_work (
@@ -101,7 +107,7 @@ class PostgresSaver:
         try:
             execute_batch(cursor, query, data.person_film_work)
         except Exception:
-            logging.exception('message')
+            logger.exception('message')
 
 
 class SQLiteLoader:
@@ -124,7 +130,7 @@ class SQLiteLoader:
             person_film_work_cont)
 
     def load_film_work(self, cursor):
-        logging.info('Start getting film_work data from sqlite_db')
+        logger.info('Start getting film_work data from sqlite_db')
         cursor.execute(
             """SELECT title,
             description,
@@ -141,11 +147,11 @@ class SQLiteLoader:
         film_work_list = []
         while line := cursor.fetchone():
             film_work_list.append(dataclasses.astuple(FilmWork(*line)))
-        logging.info('film_work data sucessfully stored')
+        logger.info('film_work data sucessfully stored')
         return film_work_list
 
     def load_genre(self, cursor):
-        logging.info('Start getting genre data from sqlite_db')
+        logger.info('Start getting genre data from sqlite_db')
         cursor.execute(
             """SELECT name,
             description,
@@ -155,11 +161,11 @@ class SQLiteLoader:
         genre_list = []
         while line := cursor.fetchone():
             genre_list.append(dataclasses.astuple(Genre(*line)))
-        logging.info('genre data sucessfully stored')
+        logger.info('genre data sucessfully stored')
         return genre_list
 
     def load_genre_film_work(self, cursor):
-        logging.info('Start getting genre_film_work data from sqlite_db')
+        logger.info('Start getting genre_film_work data from sqlite_db')
         cursor.execute(
             """SELECT created_at,
             id,
@@ -169,11 +175,11 @@ class SQLiteLoader:
         while line := cursor.fetchone():
             genre_film_work_list.append(
                 dataclasses.astuple(GenreFilmWork(*line)))
-        logging.info('genre_film_work data sucessfully stored')
+        logger.info('genre_film_work data sucessfully stored')
         return genre_film_work_list
 
     def load_person(self, cursor):
-        logging.info('Start getting person data from sqlite_db')
+        logger.info('Start getting person data from sqlite_db')
         cursor.execute(
             """SELECT full_name,
             birth_date,
@@ -183,11 +189,11 @@ class SQLiteLoader:
         person_list = []
         while line := cursor.fetchone():
             person_list.append(dataclasses.astuple(Person(*line)))
-        logging.info('person data sucessfully stored')
+        logger.info('person data sucessfully stored')
         return person_list
 
     def load_person_film_work(self, cursor):
-        logging.info('Start getting person_film_work data from sqlite_db')
+        logger.info('Start getting person_film_work data from sqlite_db')
         cursor.execute(
             """SELECT role,
             created_at,
@@ -198,5 +204,5 @@ class SQLiteLoader:
         while line := cursor.fetchone():
             person_film_work_list.append(
                 dataclasses.astuple(PersonFilmWork(*line)))
-        logging.info('person_film_work data sucessfully stored')
+        logger.info('person_film_work data sucessfully stored')
         return person_film_work_list

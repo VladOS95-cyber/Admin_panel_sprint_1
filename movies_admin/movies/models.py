@@ -1,11 +1,11 @@
 import uuid
 
-from django.core.validators import MinValueValidator
+from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 
-class TimeStampedMixin(models.Model):
+class TimeStampedModel(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -24,7 +24,7 @@ class PersonRole(models.TextChoices):
     ACTOR = 'actor', _('actor')
 
 
-class Genre(TimeStampedMixin, models.Model):
+class Genre(TimeStampedModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4)
     name = models.CharField(_('title'), max_length=255)
     description = models.TextField(_('description'), blank=True)
@@ -32,7 +32,7 @@ class Genre(TimeStampedMixin, models.Model):
     class Meta:
         verbose_name = _('genre')
         verbose_name_plural = _('genres')
-        db_table = "content\".\"genre"
+        db_table = "genre"
 
     def __str__(self):
         return self.name
@@ -44,12 +44,11 @@ class FilmworkGenre(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = "content\".\"genre_film_work"
-        index_together = ['film_work', 'genre']
+        db_table = "genre_film_work"
         unique_together = ['film_work', 'genre']
 
 
-class Person(TimeStampedMixin, models.Model):
+class Person(TimeStampedModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4)
     full_name = models.CharField(_('full_name'), max_length=255)
     birth_date = models.DateField(_('birth_date'), blank=True)
@@ -57,7 +56,7 @@ class Person(TimeStampedMixin, models.Model):
     class Meta:
         verbose_name = _('person')
         verbose_name_plural = _('persons')
-        db_table = "content\".\"person"
+        db_table = "person"
 
     def __str__(self):
         return self.full_name
@@ -73,12 +72,11 @@ class PersonFilmWork(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = "content\".\"person_film_work"
-        index_together = ['film_work', 'person', 'role']
+        db_table = "person_film_work"
         unique_together = ['film_work', 'person', 'role']
 
 
-class Filmwork(TimeStampedMixin, models.Model):
+class Filmwork(TimeStampedModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4)
     title = models.CharField(_('title'), max_length=255)
     description = models.TextField(_('description'), blank=True)
@@ -87,7 +85,9 @@ class Filmwork(TimeStampedMixin, models.Model):
     file_path = models.FileField(
         _('file'), upload_to='film_works/', blank=True)
     rating = models.FloatField(
-        _('rating'), validators=[MinValueValidator(0)], blank=True)
+        _('rating'), validators=[
+            MinValueValidator(0),
+            MaxValueValidator(10.0)], blank=True)
     type = models.CharField(
         _('type'), max_length=20, choices=FilmworkType.choices)
     genres = models.ManyToManyField(Genre, through='FilmworkGenre')
@@ -96,7 +96,7 @@ class Filmwork(TimeStampedMixin, models.Model):
     class Meta:
         verbose_name = _('filmwork')
         verbose_name_plural = _('filmworks')
-        db_table = "content\".\"film_work"
+        db_table = "film_work"
 
     def __str__(self):
         return self.title

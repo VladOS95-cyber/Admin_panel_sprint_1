@@ -1,14 +1,17 @@
-import os
+from dotenv import dotenv_values
 from pathlib import Path
+
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+env_config = dotenv_values(".env")
 
-SECRET_KEY = 'django-insecure-byyt+43cvs!9@69r(t4rkbppi9h4be3jsgqa6_u@i$9hyv4e+2'
+
+SECRET_KEY = env_config['SECRET_KEY']
 
 DEBUG = False
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = [env_config['ALLOWED_HOSTS']]
 
 
 INSTALLED_APPS = [
@@ -55,13 +58,13 @@ WSGI_APPLICATION = 'config.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('DB_NAME'),
-        'USER': os.environ.get('DB_USER'),
-        'PASSWORD': os.environ.get('DB_PASSWORD'),
-        'HOST': os.environ.get('DB_HOST', 'localhost'),
-        'PORT': os.environ.get('DB_PORT', 5432),
+        'NAME': env_config['DB_NAME'],
+        'USER': env_config['DB_USER'],
+        'PASSWORD': env_config['DB_PASSWORD'],
+        'HOST': 'localhost',
+        'PORT': 5432,
         'OPTIONS': {
-           'options': '-c search_path=public,content'
+           'options': '-c search_path=content'
         }
     }
 }
